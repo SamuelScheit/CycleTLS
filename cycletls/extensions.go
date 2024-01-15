@@ -141,7 +141,7 @@ var certCompressionAlgoExtensions = map[string]utls.CertCompressionAlgo{
 }
 
 var supportedVersionsExtensions = map[string]uint16{
-	"GREASE": utls.GREASE_PLACEHOLDER,
+	// "GREASE": utls.GREASE_PLACEHOLDER,
 	"1.3":    utls.VersionTLS13,
 	"1.2":    utls.VersionTLS12,
 	"1.1":    utls.VersionTLS11,
@@ -154,7 +154,7 @@ var pskKeyExchangeModesExtensions = map[string]uint8{
 }
 
 var keyShareCurvesExtensions = map[string]utls.KeyShare{
-	"GREASE": utls.KeyShare{Group: utls.CurveID(utls.GREASE_PLACEHOLDER), Data: []byte{0}},
+	// "GREASE": utls.KeyShare{Group: utls.CurveID(utls.GREASE_PLACEHOLDER), Data: []byte{0}},
 	"P256":   utls.KeyShare{Group: utls.CurveP256},
 	"P384":   utls.KeyShare{Group: utls.CurveP384},
 	"P521":   utls.KeyShare{Group: utls.CurveP521},
@@ -237,7 +237,7 @@ func ToTLSExtensions(e *Extensions) (extensions *TLSExtensions) {
 		}
 	}
 	if e.UseGREASE != false {
-		extensions.UseGREASE = e.UseGREASE
+		extensions.UseGREASE = false;
 	}
 	return extensions
 }

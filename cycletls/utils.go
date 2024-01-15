@@ -68,6 +68,7 @@ func DecompressBody(Body []byte, encoding []string, content []string) (parsedBod
 			"image/gif":       true,
 			"image/avif":      true,
 			"application/pdf": true,
+			"application/x-protobuf": true,
 		}
 		if decodingTypes[content[0]] {
 			return base64.StdEncoding.EncodeToString(Body)
@@ -127,17 +128,17 @@ func StringToSpec(ja3 string, userAgent string, forceHTTP1 bool) (*utls.ClientHe
 	var targetCurves []utls.CurveID
 	// if parsedUserAgent == chrome && !tlsExtensions.UseGREASE {
 	if parsedUserAgent.UserAgent == chrome {
-		targetCurves = append(targetCurves, utls.CurveID(utls.GREASE_PLACEHOLDER)) //append grease for Chrome browsers
-		if supportedVersionsExt, ok := extMap["43"]; ok {
-			if supportedVersions, ok := supportedVersionsExt.(*utls.SupportedVersionsExtension); ok {
-				supportedVersions.Versions = append([]uint16{utls.GREASE_PLACEHOLDER}, supportedVersions.Versions...)
-			}
-		}
-		if keyShareExt, ok := extMap["51"]; ok {
-			if keyShare, ok := keyShareExt.(*utls.KeyShareExtension); ok {
-				keyShare.KeyShares = append([]utls.KeyShare{{Group: utls.CurveID(utls.GREASE_PLACEHOLDER), Data: []byte{0}}}, keyShare.KeyShares...)
-			}
-		}
+		// targetCurves = append(targetCurves, utls.CurveID(utls.GREASE_PLACEHOLDER)) //append grease for Chrome browsers
+		// if supportedVersionsExt, ok := extMap["43"]; ok {
+		// 	if supportedVersions, ok := supportedVersionsExt.(*utls.SupportedVersionsExtension); ok {
+		// 		supportedVersions.Versions = append([]uint16{utls.GREASE_PLACEHOLDER}, supportedVersions.Versions...)
+		// 	}
+		// }
+		// if keyShareExt, ok := extMap["51"]; ok {
+		// 	if keyShare, ok := keyShareExt.(*utls.KeyShareExtension); ok {
+		// 		keyShare.KeyShares = append([]utls.KeyShare{{Group: utls.CurveID(utls.GREASE_PLACEHOLDER), Data: []byte{0}}}, keyShare.KeyShares...)
+		// 	}
+		// }
 	} else {
 		if keyShareExt, ok := extMap["51"]; ok {
 			if keyShare, ok := keyShareExt.(*utls.KeyShareExtension); ok {
@@ -167,9 +168,9 @@ func StringToSpec(ja3 string, userAgent string, forceHTTP1 bool) (*utls.ClientHe
 
 	// force http1
 	if forceHTTP1 {
-		extMap["16"] = &utls.ALPNExtension{
-			AlpnProtocols: []string{"http/1.1"},
-		}
+		// extMap["16"] = &utls.ALPNExtension{
+		// 	AlpnProtocols: []string{"http/1.1"},
+		// }
 	}
 
 	// custom tls extensions
@@ -214,7 +215,7 @@ func StringToSpec(ja3 string, userAgent string, forceHTTP1 bool) (*utls.ClientHe
 	//Optionally Add Chrome Grease Extension
 	// if parsedUserAgent == chrome && !tlsExtensions.UseGREASE {
 	if parsedUserAgent.UserAgent == chrome {
-		exts = append(exts, &utls.UtlsGREASEExtension{})
+		// exts = append(exts, &utls.UtlsGREASEExtension{})
 	}
 	for _, e := range extensions {
 		te, ok := extMap[e]
@@ -224,7 +225,7 @@ func StringToSpec(ja3 string, userAgent string, forceHTTP1 bool) (*utls.ClientHe
 		// //Optionally add Chrome Grease Extension
 		// if e == "21" && parsedUserAgent == chrome && !tlsExtensions.UseGREASE {
 		if e == "21" && parsedUserAgent.UserAgent == chrome {
-			exts = append(exts, &utls.UtlsGREASEExtension{})
+			// exts = append(exts, &utls.UtlsGREASEExtension{})
 		}
 		exts = append(exts, te)
 	}
@@ -234,7 +235,7 @@ func StringToSpec(ja3 string, userAgent string, forceHTTP1 bool) (*utls.ClientHe
 	//Optionally Add Chrome Grease Extension
 	// if parsedUserAgent == chrome && !tlsExtensions.UseGREASE {
 	if parsedUserAgent.UserAgent == chrome {
-		suites = append(suites, utls.GREASE_PLACEHOLDER)
+		// suites = append(suites, utls.GREASE_PLACEHOLDER)
 	}
 	for _, c := range ciphers {
 		cid, err := strconv.ParseUint(c, 10, 16)
@@ -264,20 +265,20 @@ func genMap() (extMap map[string]utls.TLSExtension) {
 		"13": &utls.SignatureAlgorithmsExtension{
 			SupportedSignatureAlgorithms: []utls.SignatureScheme{
 				utls.ECDSAWithP256AndSHA256,
-				utls.ECDSAWithP384AndSHA384,
-				utls.ECDSAWithP521AndSHA512,
 				utls.PSSWithSHA256,
-				utls.PSSWithSHA384,
-				utls.PSSWithSHA512,
 				utls.PKCS1WithSHA256,
-				utls.PKCS1WithSHA384,
-				utls.PKCS1WithSHA512,
+				utls.ECDSAWithP384AndSHA384,
 				utls.ECDSAWithSHA1,
+				utls.PSSWithSHA384,
+				utls.PSSWithSHA384,
+				utls.PKCS1WithSHA384,
+				utls.PSSWithSHA512,
+				utls.PKCS1WithSHA512,
 				utls.PKCS1WithSHA1,
 			},
 		},
 		"16": &utls.ALPNExtension{
-			AlpnProtocols: []string{"h2", "http/1.1"},
+			AlpnProtocols: []string{"h2", "h2-16", "h2-15", "h2-14", "spdy/3.1", "spdy/3", "http/1.1"},
 		},
 		"17": &utls.GenericExtension{Id: 17}, // status_request_v2
 		"18": &utls.SCTExtension{},
@@ -304,6 +305,8 @@ func genMap() (extMap map[string]utls.TLSExtension) {
 		"43": &utls.SupportedVersionsExtension{Versions: []uint16{
 			utls.VersionTLS13,
 			utls.VersionTLS12,
+			utls.VersionTLS11,
+			utls.VersionTLS10,
 		}},
 		"44": &utls.CookieExtension{},
 		"45": &utls.PSKKeyExchangeModesExtension{Modes: []uint8{
@@ -325,7 +328,7 @@ func genMap() (extMap map[string]utls.TLSExtension) {
 			},
 		}, // signature_algorithms_cert
 		"51": &utls.KeyShareExtension{KeyShares: []utls.KeyShare{
-			{Group: utls.CurveID(utls.GREASE_PLACEHOLDER), Data: []byte{0}},
+			// {Group: utls.CurveID(utls.GREASE_PLACEHOLDER), Data: []byte{0}},
 			{Group: utls.X25519},
 
 			// {Group: utls.CurveP384}, known bug missing correct extensions for handshake

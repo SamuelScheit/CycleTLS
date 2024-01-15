@@ -194,12 +194,16 @@ func dispatcher(res fullRequest) (response Response, err error) {
 
 	encoding := resp.Header["Content-Encoding"]
 	content := resp.Header["Content-Type"]
-	bodyBytes, err := io.ReadAll(resp.Body)
+	
+	log.Println("Dispatcher: ")
 
+	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Print("Parse Bytes" + err.Error())
+		log.Print("Parse Bytes " + err.Error())
 		return response, err
 	}
+
+	log.Println("Dispatcher: DecompressBody")
 
 	Body := DecompressBody(bodyBytes, encoding, content)
 	headers := make(map[string]string)
@@ -295,6 +299,7 @@ func worker(reqChan chan fullRequest, respChan chan Response) {
 
 func readSocket(reqChan chan fullRequest, c *websocket.Conn) {
 	for {
+		log.Println("Reading Socket")
 		_, message, err := c.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
@@ -352,6 +357,7 @@ func WSEndpoint(w nhttp.ResponseWriter, r *nhttp.Request) {
 	if err != nil {
 		//Golang Received a non-standard request to this port, printing request
 		var data map[string]interface{}
+		log.Println("Read body")
 		bodyBytes, err := io.ReadAll(r.Body)
 		if err != nil {
 			log.Print("Invalid Request: Body Read Error" + err.Error())
